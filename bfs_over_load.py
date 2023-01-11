@@ -22,7 +22,7 @@ class State:
 def bfs(height, width, maze, start_x, start_y, goal_x, goal_y):
     # スタート情報のインスタンスを作成し、キューに入れる
     que = deque([State(start_x, start_y)])
-    # チェック済み用集合
+    # チェック済み集合
     checked= set()
     # 通ったマスの数
     cost = 1
