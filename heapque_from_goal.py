@@ -5,10 +5,11 @@ import heapq # 優先度付きキュー（ヒープ木）モジュール
 # 座標情報クラス
 class State:
     # コンストラクタ
-    def __init__(self, x, y, cost):
+    def __init__(self, x, y, cost, ref):
         self.x = x # x座標
         self.y = y # y座標
         self.cost = cost # コスト
+        self.ref = ref #　1つ前のインスタンス
         
     # ハッシュ値の設定:インスタンス同士の比較演算をする際に必要
     def __hash__(self):
@@ -33,7 +34,7 @@ def dijkstra(height, width, board, start_x, start_y, goal_x, goal_y):
     # # 経過確認用
     # progress_list = [[0] * width for _ in range(height)]
     # cnt = 0
-        
+    
     # 未チェックのリスト
     unchecked_list = []
     # 未チェックリストを優先付きキューに変換
@@ -41,16 +42,17 @@ def dijkstra(height, width, board, start_x, start_y, goal_x, goal_y):
     # チェック済み集合
     checked_set= set()
     # スタート情報のインスタンスを作成し、キューに入れる
-    heapq.heappush(unchecked_list, State(start_x, start_y, board[start_y][start_x]))
-
+    # 初期値は1つ前の情報はないので self.ref = None
+    heapq.heappush(unchecked_list, State(start_x, start_y, board[start_y][start_x], None))
+    
     # 未チェックがなくなるまで繰り返し
     while unchecked_list:
         # costが最小のものを取り出す
         st = heapq.heappop(unchecked_list)
         
-        # ゴール座標だったらcostの値を返して終了 
+        # ゴール座標だったらインスタンスを返して終了 
         if st.x == goal_x and st.y == goal_y:
-            return st.cost
+            return st
         
         # すでにチェック済みの座標インスタンスだったらやり直し
         if st in checked_set:
@@ -79,15 +81,27 @@ def dijkstra(height, width, board, start_x, start_y, goal_x, goal_y):
             # costを計算
             dcost = st.cost + board[dy][dx]
             # 優先付きキューに追加
-            heapq.heappush(unchecked_list, State(dx, dy, dcost))
-        
+            heapq.heappush(unchecked_list, State(dx, dy, dcost, st))
+            
         # 経過確認用カウント
         # cnt += 1
     return -1
+
+# 「*」で移動経路を表示
+def walk(height, width, board, x, y):
+    print("--")
+    for i in range(height):
+        for j in range(width):
+            if j == x and i == y:
+                print("*",end="")
+            else:
+                print(" ",end="")
+            print(board[i][j],end="")
+        print()
+
                 
 # 左上のスタートから右下のゴールまで移動するときに
 # 通るマス (スタート、ゴール含む) のコストの合計の最小値を求めよ
-
 
 HEIGHT = 3 # 縦の長さ
 WIDTH = 6 # 横の長さ
@@ -100,6 +114,14 @@ BOARD = [[0, 3, 1, 4, 1, 5],
 START_X,START_Y = 0, 0 # スタート座標
 GOAL_X,GOAL_Y = WIDTH - 1, HEIGHT - 1 # ゴール座標
 
-# ゴール到達時のコストを出力
-ans = dijkstra(HEIGHT, WIDTH, BOARD, START_X, START_Y, GOAL_X, GOAL_Y)
-print(ans)
+# ゴール到達時のインスタンス
+st = dijkstra(HEIGHT, WIDTH, BOARD, START_X, START_Y, GOAL_X, GOAL_Y)
+# コストを出力
+print(st.cost)
+
+# st が None になるまで繰り返し。※スタート位置に戻るまで。
+while st is not None:
+    # 現在地を「*」で出力
+    walk(HEIGHT, WIDTH, BOARD, st.x, st.y)
+    # １つまえのインスタンスを設定
+    st = st.ref
